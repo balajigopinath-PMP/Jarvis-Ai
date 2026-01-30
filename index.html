@@ -91,9 +91,31 @@
 <body>
     <div id="root"></div>
 
+    <!-- 
+      GLOBAL LIBRARY LOADER
+      Using standard JSDELIVR Native ESM to avoid URL constructor errors
+    -->
+    <script type="module">
+        import * as webllm from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.60/+esm";
+        window.webllm = webllm;
+    </script>
+
     <script type="text/babel" data-type="module">
         // --- CONFIGURATION ---
         const SELECTED_MODEL = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC";
+        
+        // Explicitly define the model config to fix "Cannot find model record" error
+        const appConfig = {
+            model_list: [
+                {
+                    "model": "https://huggingface.co/mlc-ai/Qwen2.5-0.5B-Instruct-q4f16_1-MLC",
+                    "model_id": "Qwen2.5-0.5B-Instruct-q4f16_1-MLC",
+                    "model_lib": "https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/main/web-llm-models/v0.2.46/Qwen2-0.5B-Instruct-q4f16_1-ctx4k_cs1k-webgpu.wasm",
+                    "vram_required_MB": 510,
+                    "low_resource_required": true,
+                }
+            ]
+        };
         
         const SYSTEM_PROMPT = `You are J.A.R.V.I.S.-class artificial intelligence.
 You are a fast, minimal, execution-focused assistant designed for ultra-low-latency environments.
@@ -404,17 +426,31 @@ SAFETY & CONSTRAINTS:
                         return;
                     }
 
+                    // Polling for global library load
+                    let retries = 0;
+                    while (!window.webllm && retries < 50) {
+                        await new Promise(r => setTimeout(r, 200));
+                        retries++;
+                    }
+
+                    if (!window.webllm) {
+                        setError("Failed to load AI Engine. Check internet connection.");
+                        return;
+                    }
+
                     try {
-                        // Dynamically import from JSDELIVR which preserves native ESM paths
-                        const { MLCEngine } = await import("https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.60/+esm");
+                        const { MLCEngine } = window.webllm;
                         
+                        // Pass the custom config to the engine so it knows where to find the model
                         const eng = new MLCEngine();
+                        
                         eng.setInitProgressCallback((report) => {
                              setProgress(report.text);
                              setBootStatus("Loading Neural Weights...");
                         });
 
-                        await eng.reload(SELECTED_MODEL);
+                        // Reload with the ID and the custom appConfig
+                        await eng.reload(SELECTED_MODEL, { appConfig });
                         
                         setEngine(eng);
                         setBootStatus("Online");
