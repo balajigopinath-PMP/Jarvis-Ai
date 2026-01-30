@@ -204,8 +204,8 @@ SAFETY & CONSTRAINTS:
                                 </>
                             ) : (
                                 <div className="p-4 border border-red-500/30 bg-red-500/10 rounded-lg">
-                                    <p className="text-red-400 text-xs font-mono text-center">{error}</p>
-                                    <p className="text-gray-500 text-[10px] mt-2 text-center">Please refresh or check your connection.</p>
+                                    <p className="text-red-400 text-xs font-mono text-center uppercase tracking-wider font-bold">Initialization Failed</p>
+                                    <p className="text-gray-400 text-xs font-mono text-center mt-2">{error}</p>
                                 </div>
                             )}
                         </div>
@@ -400,13 +400,13 @@ SAFETY & CONSTRAINTS:
             React.useEffect(() => {
                 const startSystem = async () => {
                     if (!navigator.gpu) {
-                        setError("GPU hardware not detected.");
+                        setError("WebGPU not detected. Use Chrome/Edge 113+.");
                         return;
                     }
 
                     try {
-                        // Dynamic import for safety
-                        const { MLCEngine } = await import("https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.46/+esm");
+                        // Dynamically import from JSDELIVR which preserves native ESM paths
+                        const { MLCEngine } = await import("https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.60/+esm");
                         
                         const eng = new MLCEngine();
                         eng.setInitProgressCallback((report) => {
@@ -421,7 +421,7 @@ SAFETY & CONSTRAINTS:
                         setProgress("100%");
                     } catch (err) {
                         console.error(err);
-                        setError("Security Block: Please open this file directly in Chrome/Safari.");
+                        setError(err.message || "Unknown Initialization Error");
                     }
                 };
                 
