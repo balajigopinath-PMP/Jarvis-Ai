@@ -3,56 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- Base tag for relative path resolution -->
     <base href="." />
     <title>Jarvis | LaMini WebGPU</title>
-    
-    <!-- Tailwind CSS -->
+    <!-- External Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <style>
-        /* Base Styles & Reset */
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: #000000; 
             color: white; 
+            margin: 0;
             overflow: hidden; 
             -webkit-tap-highlight-color: transparent;
         }
-
-        /* Glassmorphism Utilities */
         .glass { 
             background: rgba(255, 255, 255, 0.05); 
             backdrop-filter: blur(20px); 
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1); 
         }
-        
         .glass-panel {
             background: rgba(10, 10, 12, 0.6);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-
-        /* Custom scrollbar for chat */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Animations */
         @keyframes pulse-logo {
             0% { transform: scale(1); opacity: 0.8; filter: drop-shadow(0 0 0px rgba(139, 92, 246, 0)); }
             50% { transform: scale(1.02); opacity: 1; filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.5)); }
@@ -67,16 +51,12 @@
         }
         .float-anim { animation: float 6s ease-in-out infinite; }
 
-        /* Typing Indicator */
         .dot { animation: jump 1.5s infinite; }
         .dot:nth-child(2) { animation-delay: 0.2s; }
         .dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes jump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
-        /* Font Utilities */
         .font-mono { font-family: 'JetBrains Mono', monospace; }
-        
-        /* Theme Colors Override for SmolLM (Purple) */
         .text-accent { color: #A78BFA; }
         .bg-accent { background-color: #8B5CF6; }
         .border-accent { border-color: #8B5CF6; }
@@ -85,31 +65,20 @@
 <body>
     <div id="root"></div>
 
-    <!-- 
-      TRANSFORMERS.JS LOADER
-      Using the Xenova build which works well in browsers.
-    -->
+    <!-- Transformers.js script with direct global assignment -->
     <script type="module">
         import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2";
-        
-        // Configuration to ensure it runs smoothly in this environment
+        window.transformers = { pipeline, env };
         env.allowLocalModels = false;
         env.useBrowserCache = true;
-        // Explicitly allow remote models to fix potential authorization confusion
-        env.allowRemoteModels = true; 
-        
-        window.transformers = { pipeline, env };
+        env.allowRemoteModels = true;
     </script>
 
-    <script type="text/babel" data-type="module">
-        // --- CONFIGURATION ---
-        // Switched to LaMini-GPT-124M: A 124M parameter model that is publicly available and reliable
+    <!-- Fixed Babel Script (Removed data-type="module" to prevent esmodules boolean error) -->
+    <script type="text/babel">
         const MODEL_ID = "Xenova/LaMini-GPT-124M";
-        
-        const SYSTEM_PROMPT = `You are a helpful, smart, and efficient AI assistant named Jarvis.`;
 
         // --- COMPONENTS ---
-
         const Button = ({ children, onClick, variant = 'primary', className = '', disabled = false }) => {
             const baseStyle = "w-full py-4 rounded-2xl font-medium transition-all active:scale-95 flex items-center justify-center gap-3";
             const variants = {
@@ -140,37 +109,26 @@
             );
         };
 
-        // --- SCREENS ---
-
         const BootScreen = ({ status, progress, error, onEnter }) => {
             const isReady = status === "Online";
             const progressWidth = Math.min(Math.max(progress || 5, 5), 100);
 
             return (
                 <div className="h-screen flex flex-col bg-black relative overflow-hidden">
-                    {/* Background Grid */}
                     <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #333 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
-                    
                     <div className="flex-1 flex flex-col items-center justify-center z-10 p-8 space-y-12">
                         <div className="transform scale-150">
                             <Logo size="large" />
                         </div>
-                        
                         <div className="text-center space-y-2 max-w-xs">
-                            <h1 className="text-3xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">
-                                LaMini
-                            </h1>
-                            <p className="text-xs font-mono text-purple-400 tracking-[0.2em] uppercase">
-                                124M Parameter Model
-                            </p>
+                            <h1 className="text-3xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">LaMini</h1>
+                            <p className="text-xs font-mono text-purple-400 tracking-[0.2em] uppercase">124M Parameter Model</p>
                         </div>
-
-                        {/* Loader / Status */}
                         <div className="w-full max-w-xs space-y-4">
                             {!error ? (
                                 <>
                                     <div className="flex justify-between text-xs font-mono text-gray-500">
-                                        <span>{status}</span>
+                                        <span className="truncate max-w-[150px]">{status}</span>
                                         <span>{Math.round(progressWidth)}%</span>
                                     </div>
                                     <div className="h-1 w-full bg-gray-900 rounded-full overflow-hidden">
@@ -179,20 +137,16 @@
                                             style={{ width: `${isReady ? 100 : progressWidth}%` }}
                                         ></div>
                                     </div>
-                                    <p className="text-[10px] text-gray-600 font-mono text-center h-4">
-                                        Transformers.js Engine
-                                    </p>
+                                    <p className="text-[10px] text-gray-600 font-mono text-center h-4 uppercase tracking-tighter">Transformers.js Engine</p>
                                 </>
                             ) : (
                                 <div className="p-4 border border-red-500/30 bg-red-500/10 rounded-lg">
                                     <p className="text-red-400 text-xs font-mono text-center uppercase tracking-wider font-bold">Initialization Failed</p>
-                                    <p className="text-gray-400 text-xs font-mono text-center mt-2">{error}</p>
+                                    <p className="text-gray-400 text-[10px] font-mono text-center mt-2 break-all">{error}</p>
                                 </div>
                             )}
                         </div>
                     </div>
-
-                    {/* Bottom Action */}
                     <div className="p-8 z-10">
                         <Button 
                             variant={isReady ? "neon" : "secondary"} 
@@ -216,22 +170,18 @@
                         </div>
                         <div className="flex flex-col">
                              <span className="text-xs text-gray-500 uppercase tracking-wider">Operator</span>
-                             <span className="text-sm font-medium">Online</span>
+                             <span className="text-sm font-medium text-white">Online</span>
                         </div>
                     </div>
                     <button className="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-white/10 transition">
                         <i className="ph ph-gear text-gray-400"></i>
                     </button>
                 </div>
-
                 <div className="flex-1 flex flex-col items-center justify-center z-10 p-6">
                     <div className="glass w-full rounded-[2rem] p-8 relative overflow-hidden text-center space-y-6 shadow-2xl">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50"></div>
-                        
                         <p className="text-[10px] uppercase tracking-widest text-purple-400 font-bold font-mono">Status: Active</p>
-                        <h2 className="text-3xl font-medium">LaMini is ready <br/> for you.</h2>
-                        
-                        {/* 3D Abstract Object Simulation (SVG) */}
+                        <h2 className="text-3xl font-medium text-white">LaMini is ready <br/> for you.</h2>
                         <div className="relative h-48 w-full flex items-center justify-center my-2 float-anim">
                              <div className="absolute w-32 h-32 bg-purple-500/20 rounded-full blur-3xl"></div>
                              <svg viewBox="0 0 200 200" className="w-48 h-48 drop-shadow-[0_0_15px_rgba(139,92,246,0.3)]">
@@ -246,18 +196,16 @@
                                 <circle cx="100" cy="100" r="30" fill="url(#pipeGrad)" opacity="0.2" />
                              </svg>
                         </div>
-
                         <div className="grid grid-cols-2 gap-3">
-                            <button onClick={onNext} className="glass p-3 rounded-xl text-xs text-left hover:bg-white/5 transition border border-white/5">
+                            <button onClick={onNext} className="glass p-3 rounded-xl text-xs text-left hover:bg-white/5 transition border border-white/5 text-gray-300">
                                 <i className="ph ph-lightning text-yellow-400 mb-2 block text-lg"></i>
                                 Creative Writing
                             </button>
-                            <button onClick={onNext} className="glass p-3 rounded-xl text-xs text-left hover:bg-white/5 transition border border-white/5">
+                            <button onClick={onNext} className="glass p-3 rounded-xl text-xs text-left hover:bg-white/5 transition border border-white/5 text-gray-300">
                                 <i className="ph ph-code text-blue-400 mb-2 block text-lg"></i>
                                 Reasoning
                             </button>
                         </div>
-
                         <Button onClick={onNext} variant="neon" className="w-full">Start Conversation</Button>
                     </div>
                 </div>
@@ -275,22 +223,13 @@
 
             const handleSend = async () => {
                 if (!input.trim() || !pipe || isThinking) return;
-
                 const userText = input.trim();
-                const newMessages = [...messages, { role: "user", content: userText }];
-                setMessages(newMessages);
+                setMessages(prev => [...prev, { role: "user", content: userText }]);
                 setInput("");
                 setIsThinking(true);
 
                 try {
-                    // Manual Chat Template for LaMini (Simple Instruction Format)
-                    let prompt = `Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n### Instruction:\n${userText}\n\n### Response:`;
-                    
-                    // If there's history, we might want to append it, but for simple models, 
-                    // single turn or simple concatenation often works best to avoid context overflow.
-                    // For now, let's treat it as single turn for maximum stability on small models.
-                    
-                    // Generate
+                    const prompt = `Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n### Instruction:\n${userText}\n\n### Response:`;
                     const output = await pipe(prompt, {
                         max_new_tokens: 150,
                         temperature: 0.7,
@@ -298,21 +237,13 @@
                         top_k: 50,
                         return_full_text: false, 
                     });
-
                     let reply = output[0].generated_text;
-                    
-                    // Cleanup common artifacts
                     reply = reply.replace("### Response:", "").trim();
-
                     setMessages(prev => [...prev, { role: "assistant", content: reply }]);
-                    
                     if ('speechSynthesis' in window) {
-                        const u = new SpeechSynthesisUtterance(reply);
-                        u.rate = 1.2; u.pitch = 1.0;
-                        window.speechSynthesis.speak(u);
+                        window.speechSynthesis.speak(new SpeechSynthesisUtterance(reply));
                     }
                 } catch (error) {
-                    console.error(error);
                     setMessages(prev => [...prev, { role: "assistant", content: "Error: Generation failed." }]);
                 } finally {
                     setIsThinking(false);
@@ -321,15 +252,12 @@
 
             return (
                 <div className="h-screen flex flex-col bg-[#0F0F11]">
-                    {/* Compact Header */}
-                    <div className="px-4 py-3 glass border-b-0 flex justify-between items-center z-10 bg-[#0F0F11]/90">
+                    <div className="px-4 py-3 glass flex justify-between items-center z-10 bg-[#0F0F11]/90">
                         <div className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(139,92,246,0.8)]"></div>
-                            <span className="font-mono text-xs text-purple-500 tracking-widest">LaMini ACTIVE</span>
+                            <span className="font-mono text-xs text-purple-500 tracking-widest uppercase">Jarvis ACTIVE</span>
                         </div>
-                        <button className="text-gray-500 hover:text-white"><i className="ph ph-dots-three-vertical"></i></button>
                     </div>
-
                     <div className="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar">
                         {messages.length === 0 && (
                             <div className="h-full flex flex-col items-center justify-center opacity-30">
@@ -337,19 +265,13 @@
                                 <p className="mt-4 font-mono text-xs tracking-widest text-purple-400">AWAITING INPUT</p>
                             </div>
                         )}
-                        
                         {messages.map((msg, idx) => (
                             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 <div className={`max-w-[85%] p-4 text-[14px] leading-relaxed ${
-                                    msg.role === 'user' 
-                                    ? 'bg-white text-black rounded-2xl rounded-tr-sm' 
-                                    : 'glass-panel text-gray-100 rounded-2xl rounded-tl-sm border-l-2 border-l-purple-500'
-                                }`}>
-                                    {msg.content}
-                                </div>
+                                    msg.role === 'user' ? 'bg-white text-black rounded-2xl rounded-tr-sm' : 'glass-panel text-gray-100 rounded-2xl rounded-tl-sm border-l-2 border-l-purple-500'
+                                }`}>{msg.content}</div>
                             </div>
                         ))}
-                        
                         {isThinking && (
                             <div className="flex justify-start">
                                 <div className="glass px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1">
@@ -361,21 +283,15 @@
                         )}
                         <div ref={messagesEndRef} />
                     </div>
-
-                    <div className="p-4 glass-panel m-4 rounded-full flex items-center gap-3 border-t border-white/10">
+                    <div className="p-4 glass-panel m-4 rounded-full flex items-center gap-3">
                         <input 
-                            type="text" 
-                            value={input}
+                            type="text" value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                            placeholder="Type a message..."
+                            placeholder="Ask Jarvis anything..."
                             className="flex-1 bg-transparent border-none outline-none text-white placeholder-gray-600 px-2 font-mono text-sm"
                         />
-                        <button 
-                            onClick={handleSend} 
-                            disabled={isThinking || !input.trim()} 
-                            className="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center hover:bg-purple-500 hover:text-black transition-all"
-                        >
+                        <button onClick={handleSend} disabled={isThinking || !input.trim()} className="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center hover:bg-purple-500 hover:text-black transition-all">
                             <i className="ph ph-arrow-right"></i>
                         </button>
                     </div>
@@ -383,42 +299,43 @@
             );
         };
 
-        // --- MAIN APP FLOW ---
         const App = () => {
             const [screen, setScreen] = React.useState('boot'); 
             const [pipe, setPipe] = React.useState(null);
-            const [bootStatus, setBootStatus] = React.useState("Initializing...");
+            const [bootStatus, setBootStatus] = React.useState("Initializing Core...");
             const [progress, setProgress] = React.useState(0);
             const [error, setError] = React.useState(null);
 
-            // Initialize Transformers.js
             React.useEffect(() => {
                 const startSystem = async () => {
-                    // Check for library
                     let retries = 0;
-                    while (!window.transformers && retries < 50) {
-                        await new Promise(r => setTimeout(r, 200));
+                    // Wait for the window.transformers to be set by the module script
+                    while (!window.transformers && retries < 200) {
+                        await new Promise(r => setTimeout(r, 100));
                         retries++;
                     }
 
                     if (!window.transformers) {
-                        setError("Library load failed.");
+                        setError("Engine timeout: Transformers.js failed to load.");
                         return;
                     }
 
                     try {
                         const { pipeline } = window.transformers;
+                        setBootStatus("Loading Model Weights...");
                         
-                        setBootStatus("Loading LaMini-124M...");
+                        // Device selection
+                        const device = ('gpu' in navigator) ? 'webgpu' : 'cpu';
                         
-                        // Initialize Pipeline with simple text generation
                         const instance = await pipeline('text-generation', MODEL_ID, {
+                            device: device,
                             progress_callback: (data) => {
                                 if (data.status === 'progress') {
                                     setProgress(data.progress);
-                                    if(data.file) setBootStatus(`Downloading ${data.file}...`);
+                                } else if (data.status === 'initiate') {
+                                    setBootStatus(`Fetching ${data.file || 'weights'}...`);
                                 } else if (data.status === 'ready') {
-                                    setBootStatus("Compiling Shaders...");
+                                    setBootStatus("Calibrating Interface...");
                                 }
                             }
                         });
@@ -427,32 +344,4 @@
                         setBootStatus("Online");
                         setProgress(100);
                     } catch (err) {
-                        console.error(err);
-                        setError(err.message || "Model Init Failed");
-                    }
-                };
-                
-                startSystem();
-            }, []);
-
-            return (
-                <>
-                    {screen === 'boot' && (
-                        <BootScreen 
-                            status={bootStatus} 
-                            progress={progress} 
-                            error={error} 
-                            onEnter={() => setScreen('home')} 
-                        />
-                    )}
-                    {screen === 'home' && <HomeScreen onNext={() => setScreen('chat')} />}
-                    {screen === 'chat' && <ChatScreen pipe={pipe} />}
-                </>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+                        console.error("
