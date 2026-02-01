@@ -344,4 +344,25 @@
                         setBootStatus("Online");
                         setProgress(100);
                     } catch (err) {
-                        console.error("
+                        console.error("Init Error:", err);
+                        setError(err.message || "Model failed to initialize.");
+                    }
+                };
+                startSystem();
+            }, []);
+
+            return (
+                <div className="w-full h-screen bg-black overflow-hidden">
+                    {screen === 'boot' && <BootScreen status={bootStatus} progress={progress} error={error} onEnter={() => setScreen('home')} />}
+                    {screen === 'home' && <HomeScreen onNext={() => setScreen('chat')} />}
+                    {screen === 'chat' && <ChatScreen pipe={pipe} />}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>```
+
